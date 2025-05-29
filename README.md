@@ -96,30 +96,29 @@ Prototype and build IoT systems without setting up servers or developing web sof
 ```
 #include"ThingSpeak.h"
 #include<WiFi.h>
-#include"DHT.h"
 
+#define ldr_pin 34
 
-char id[]="**";
-char pass[]="**";
-
-const int out=23;
-long T;
-float temperature=0;
-
+char ssid[]="##";
+char pass[]="##";
+//int keyIndex=0;
 WiFiClient client;
-DHT dht(23,DHT11);
 
-unsigned long myChannel=**;
-const int TemperatureField=1;
-const int HumidityField=2;
-const char* myWriteAPIKey="9FVX9Z1NMIZ7V06N";
+unsigned long myChannelNumber =2923385;
+const int ChannelField = 1;
+const char * myWriteAPIKey = "mwa0000037497212";
+
+int ldrValue = 0;
+int lightPercentage = 0;
+
+const int darkValue = 4095;
+const int brightValue = 0;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(out,INPUT);
+  pinMode(ldr_pin,INPUT);
+  WiFi.mode(WIFI_STA);
   ThingSpeak.begin(client);
-  dht.begin();
-  
 
 }
 
@@ -127,31 +126,25 @@ void loop() {
   if(WiFi.status()!=WL_CONNECTED)
   {
     Serial.print("Attempting to connect to SSID:");
-    Serial.println(id);
+    Serial.println(ssid);
     while(WiFi.status()!=WL_CONNECTED)
     {
-      WiFi.begin(id,pass);
+      WiFi.begin(ssid,pass);
       Serial.print(".");
       delay(5000);
     }
     Serial.println("\nConnected.");
   }
-  float temperature=dht.readTemperature();
-  float humidity=dht.readHumidity();
 
-  Serial.print("Temperature: ");
-  Serial.println(temperature);
-  Serial.println("C");
-
-  Serial.print("Humidity:");
-  Serial.println(humidity);
-  Serial.println("g.m-3");
-
-  ThingSpeak.writeField(myChannel,TemperatureField,temperature,myWriteAPIKey);
-  ThingSpeak.writeField(myChannel,HumidityField,humidity,myWriteAPIKey);
-  delay(1000);
+ldrValue=analogRead(ldr_pin);
+lightPercentage = map(ldrValue,darkValue,brightValue,0,100);
+lightPercentage=constrain(lightPercentage,0,100);
+Serial.println("Intensity=");
+Serial.println(lightPercentage);
+Serial.println("%");
+ThingSpeak.writeField(myChannelNumber,ChannelField,lightPercentage,myWriteAPIKey);
+delay(5000);
 }
-
 ```
 # CIRCUIT DIAGRAM:
 ![PIOT EX4](https://github.com/user-attachments/assets/9c911f01-ce0c-459b-93ec-3f1aecdc5902)
